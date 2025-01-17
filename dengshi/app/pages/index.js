@@ -1,7 +1,6 @@
-// app/page.js
-
+// pages/index.js
 import Head from 'next/head';
-import Prediction from './components/Prediction';
+import Prediction from '../components/Prediction';
 
 const Home = () => {
   return (
