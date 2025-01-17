@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dengshi: AI-Driven Outbreak Prediction</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  
+  <!-- Link to external CSS file -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Dengshi: AI for AI-Driven Outbreak Prediction</h1>
+  <button id="startButton" class="btn" onclick="init()">Start Prediction</button>
+  <div id="loading" class="loading hidden">Initializing the AI model and preparing data...</div>
+  <div id="webcam-container" class="hidden"></div>
+  <div id="label-container" class="hidden"></div>
+
+  <script type="text/javascript">
+    const URL = "https://teachablemachine.withgoogle.com/models/upSlu7xsV/";  // Replace with your new model URL if needed
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    async function init() {
+      document.getElementById('startButton').classList.add('hidden');
+      document.getElementById('loading').classList.remove('hidden');
+      
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      // Load the model and metadata
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      // Setup webcam
+      const flip = true;
+      webcam = new tmImage.Webcam(200, 200, flip);
+      await webcam.setup();
+      await webcam.play();
+      window.requestAnimationFrame(loop);
+
+      // Append webcam canvas to DOM
+      document.getElementById("webcam-container").appendChild(webcam.canvas);
+      document.getElementById("webcam-container").classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+
+      // Setup labels
+      labelContainer = document.getElementById("label-container");
+      for (let i = 0; i < maxPredictions; i++) {
+        labelContainer.appendChild(document.createElement("div"));
+      }
+      labelContainer.classList.remove('hidden');
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      for (let i = 0; i < maxPredictions; i++) {
+        const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        labelContainer.childNodes[i].innerHTML = classPrediction;
+      }
+    }
+  </script>
+
+
+</body>
+</html>
